@@ -4,7 +4,8 @@
 import random
 import re
 import string
-from typing import AnyStr, List
+from functools import wraps
+from typing import AnyStr, List, Any
 
 import requests
 
@@ -55,6 +56,21 @@ class ApiException(Exception):
         return self._errors
 
 
+def auth_require(func: callable) -> Any:
+    """Simple wrapper to prevent unauthorized http requests to API server
+
+    :param func: callable
+    :return: Any
+    """
+
+    @wraps(func)
+    def wrapper(self, *args, **kwargs):
+        if not self._session.headers.get('Authorization', None):
+            raise ApiException('Please authorize first', requests.Response())
+        return func(self, *args, **kwargs)
+    return wrapper
+
+
 class BotApiV1:
     """Simple Api client
 
@@ -62,9 +78,9 @@ class BotApiV1:
 
     def __init__(self, host):
         self.__host = host
-        self.__req = requests.Session()
-        self.__req.verify = False  # ignore self signed certificates
-        self.__req.headers['Accept'] = 'application/json'
+        self._session = requests.Session()
+        self._session.verify = False  # ignore self signed certificates
+        self._session.headers['Accept'] = 'application/json'
         self._me = {}
 
     def _build_url(self, uri: AnyStr) -> AnyStr:
@@ -92,9 +108,9 @@ class BotApiV1:
         :param kwargs:
         :return: requests.Response
         """
-        request_func = self.__req.get
+        request_func = self._session.get
         if method.lower() != 'get':
-            request_func = self.__req.post
+            request_func = self._session.post
 
         resp = request_func(*args, **kwargs)
         if resp.status_code not in [200, 201, 301, 302, 304]:
@@ -113,10 +129,10 @@ class BotApiV1:
         try:
             self.__post(self._build_url('auth/verify'), {'token': token})
         except ApiException as _:
-            del self.__req.headers['Authorization']
+            del self._session.headers['Authorization']
             raise
         else:
-            self.__req.headers['Authorization'] = f'JWT {token}'
+            self._session.headers['Authorization'] = f'JWT {token}'
 
     def authenticate(self, username: AnyStr, password: AnyStr) -> None:
         """Authenticate user
@@ -130,9 +146,10 @@ class BotApiV1:
             'password': password
         }
         resp = self.__post(self._build_url('auth'), data=auth_data)
-        self.__req.headers['Authorization'] = f'JWT {resp.json()["token"]}'
+        self._session.headers['Authorization'] = f'JWT {resp.json()["token"]}'
 
     @property
+    @auth_require
     def me(self):
         if not self._me:
             self._me = DictWrapper(
@@ -140,6 +157,7 @@ class BotApiV1:
             )
         return self._me
 
+    @auth_require
     def users(self) -> List:
         """Get user list from api
 
@@ -148,6 +166,7 @@ class BotApiV1:
         for user in self.__request(self._build_url('users')).json():
             yield DictWrapper(user)
 
+    @auth_require
     def posts(self) -> List:
         """Get posts .
 
@@ -155,19 +174,20 @@ class BotApiV1:
         """
         return self.__request(self._build_url('posts')).json()
 
+    @auth_require
     def register(self, username, password, email) -> dict:
-        """
+        """Register new user with provided data
 
-        :param username:
-        :param password:
-        :param email:
+        :param username: string desired user name
+        :param password: string user password
+        :param email: string user email
         :return:
         """
         user_data = {
            'username': username,
            'password1': password,
            'password2': password,
-            'email': email
+           'email': email
         }
 
         data = self.__post(
@@ -178,7 +198,14 @@ class BotApiV1:
         result['token'] = data['token']
         return result
 
-    def new_post(self, title, body):
+    @auth_require
+    def new_post(self, title: AnyStr, body: AnyStr) -> dict:
+        """Create new post item
+
+        :param title: string
+        :param body: string
+        :return: dict with new post details
+        """
         data = self.__post(
             self._build_url('posts'),
             {
