@@ -32,3 +32,7 @@ class Post(models.Model):
         if not self.slug:
             self.slug = self._get_unique_slug()
         super().save(*args, **kwargs)
+
+    @property
+    def likes(self):
+        return 9

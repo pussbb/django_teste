@@ -15,6 +15,7 @@ class UserSerializer(serializers.ModelSerializer):
 
 
 class PostSerializer(serializers.ModelSerializer):
+    likes = serializers.ReadOnlyField()
 
     class Meta:
         model = Post

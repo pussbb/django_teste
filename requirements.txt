@@ -7,3 +7,4 @@ djangorestframework-jwt
 django-filter
 django-rest-auth
 django-allauth
+requests
