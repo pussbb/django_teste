@@ -43,7 +43,7 @@ INSTALLED_APPS = [
     'allauth',
     'allauth.account',
     'rest_auth.registration',
-    'teste_api.apps.TesteApiConfig',
+    'teste.apps.TesteApiConfig',
 ]
 
 SITE_ID = 1

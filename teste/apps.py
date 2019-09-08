@@ -2,5 +2,5 @@ from django.apps import AppConfig
 
 
 class TesteApiConfig(AppConfig):
-    name = 'teste_api'
+    name = 'teste'
     verbose_name = 'Test Site'
