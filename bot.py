@@ -28,6 +28,9 @@ class DictWrapper(dict):
 
 
 class ApiException(Exception):
+    """Helper Exception class to get errors from API response
+
+    """
 
     def __init__(self, message: AnyStr, response: requests.Response):
         super().__init__(message)
@@ -184,10 +187,10 @@ class BotApiV1:
         :return:
         """
         user_data = {
-           'username': username,
-           'password1': password,
-           'password2': password,
-           'email': email
+            'username': username,
+            'password1': password,
+            'password2': password,
+            'email': email
         }
 
         data = self.__post(
@@ -220,6 +223,12 @@ class BotApiV1:
 
 def text_generator(size=8,
                    chars=string.ascii_lowercase + string.digits):
+    """Generate random string.
+
+    :param size: length of resulting string
+    :param chars: symbols to use
+    :return: str
+    """
     return ''.join(random.choice(chars) for _ in range(size))
 
 
