@@ -68,4 +68,3 @@ class VoteViewSet(NoModifyModelViewSet):
     serializer_class = VoteSerializer
     permission_classes = [IsOwner]
 
-
