@@ -111,12 +111,9 @@ class BotApiV1:
         :param kwargs:
         :return: requests.Response
         """
-        request_func = self._session.get
-        if method.lower() != 'get':
-            request_func = self._session.post
-
+        request_func = getattr(self._session, method.lower())
         resp = request_func(*args, **kwargs)
-        if resp.status_code not in [200, 201, 301, 302, 304]:
+        if 200 < resp.status_code > 304:
             raise ApiException(
                 'Api request failed. {}'.format(resp.status_code),
                 resp
@@ -197,9 +194,19 @@ class BotApiV1:
             self._build_url('auth/registration'),
             user_data
         ).json()
+
         result = DictWrapper(data['user'])
         result['token'] = data['token']
         return result
+
+    @auth_require
+    def delete_post(self, post_id):
+        """
+
+        :param post_id:
+        :return: None
+        """
+        self.__request(self._build_url(f'posts/{post_id}'), method='DELETE')
 
     @auth_require
     def new_post(self, title: AnyStr, body: AnyStr) -> dict:
@@ -236,7 +243,13 @@ bot = BotApiV1('http://127.0.0.1:8000/api/v1')
 bot.authenticate('admin', '123456')
 print(list(bot.users()))
 print(bot.posts())
-#data = bot.register('sddddaasddas', 'sdasdasd', 'ssd23sd@dsadasddd.com')
+
+#print(bot.delete_post(2))
+#data = bot.register('as2', 'sdasdasd', '3232242@dsadasddd.com')
+#print(data)
 #print(bot.authenticate_token(data['token']))
 
-print(bot.new_post(text_generator(), text_generator(1024, string.printable)))
+post = bot.new_post(text_generator(), text_generator(1024, string.printable))
+print(post)
+
+bot.delete_post(post['id'])
