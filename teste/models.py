@@ -36,7 +36,8 @@ class Vote(models.Model):
     objects = VotesManager()
 
     class Meta:
-        unique_together = (('author', 'content_type', 'object_id'),)
+        pass
+        #unique_together = (('author', 'content_type', 'object_id'),)
 
     def __update_related_content_object(self, amount=1):
         field = 'likes'
