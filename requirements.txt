@@ -1,7 +1,7 @@
 Django==2.2.13
 MarkupSafe==1.1.1
 pytz==2019.2
-sqlparse==0.3.0
+sqlparse==0.4.4
 djangorestframework
 djangorestframework-jwt
 django-filter
